@@ -3,42 +3,23 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'malikdrote/sample-html-image'
+        DOCKER_TAG = 'version.txt'
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
-        GIT_CREDENTIALS = 'github-pat' // GitHub Personal Access Token
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the Git repository
-                git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: "${GIT_CREDENTIALS}"
+                git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
         }
-
         stage('Increment Version') {
             steps {
                 script {
-                    // Increment the version and read the new version
                     sh './increment_version.sh'
-                    def newVersion = readFile('version.txt').trim()
+                    // Read the new version from the file
+                    def newVersion = readFile(VERSION_FILE).trim()
                     env.DOCKER_TAG = newVersion
-                }
-            }
-        }
-
-        stage('Commit Version Update') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: "${GIT_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
-                        // Commit and push the updated version file
-                        sh '''
-                            git config user.name "MALIKROTE"
-                            git config user.email "malikrote1@gmail.com"
-                            git add version.txt
-                            git commit -m "Update version to ${DOCKER_TAG}"
-                            echo $GITHUB_TOKEN | git push https://github.com/MALIKROTE/jenkins-pipeline.git main
-                        '''
-                    }
                 }
             }
         }
@@ -46,7 +27,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image with the new tag
                     docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
                 }
             }
@@ -56,7 +36,6 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIALS}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        // Login and push the Docker image
                         sh """
                             echo $PASSWORD | docker login -u $USERNAME --password-stdin
                             docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
@@ -65,29 +44,28 @@ pipeline {
                 }
             }
         }
-
         stage('Pull Docker Image') {
             steps {
                 script {
-                    // Pull the Docker image to ensure it is available
-                    sh "docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    echo 'Pulling Docker image...'
+                    sh 'docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                    }
                 }
-            }
         }
 
         stage('Run Docker Container') {
             steps {
                 script {
-                    // Run the Docker container
-                    sh "docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                }
-            }
+                    echo 'Running Docker container...'
+                    sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                        }
+                    }
         }
 
         stage('Check Running Container') {
             steps {
                 script {
-                    // List all Docker containers
+                    echo 'Listing running Docker containers...'
                     sh 'docker ps -a'
                 }
             }
@@ -96,7 +74,7 @@ pipeline {
         stage('Stop Docker Container') {
             steps {
                 script {
-                    // Stop the Docker container
+                    echo 'Stopping Docker container...'
                     sh 'docker stop my_container'
                 }
             }
@@ -105,7 +83,7 @@ pipeline {
         stage('Remove Docker Container') {
             steps {
                 script {
-                    // Remove the Docker container
+                    echo 'Removing Docker container...'
                     sh 'docker rm my_container'
                 }
             }
@@ -114,9 +92,10 @@ pipeline {
         stage('Deploy Docker Image') {
             steps {
                 script {
-                    // Deploy the Docker image
+                    echo 'Deploying Docker container...'
                     sh """
-                        docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    
+                    docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
             }
