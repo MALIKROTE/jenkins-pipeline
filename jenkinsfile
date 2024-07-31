@@ -12,7 +12,6 @@ pipeline {
             steps {
                 git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
-            }
         }
 
         stage('Build Docker Image') {
