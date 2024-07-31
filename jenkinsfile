@@ -13,6 +13,7 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
         }
+
         stage('Increment Version') {
             steps {
                 script {
@@ -43,32 +44,23 @@ pipeline {
                 }
             }
         }
+
         stage('Pull Docker Image') {
             steps {
                 script {
                     echo 'Pulling Docker image...'
-<<<<<<< HEAD
-                    sh 'docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}'
-                    }
-=======
                     sh "docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}"
->>>>>>> 050bf9e14be455d940f236d3e6c407bc5eb0d5bd
                 }
+            }
         }
 
         stage('Run Docker Container') {
             steps {
                 script {
                     echo 'Running Docker container...'
-<<<<<<< HEAD
-                    sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
-                        }
-                    }
-=======
                     sh "docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}"
                 }
             }
->>>>>>> 050bf9e14be455d940f236d3e6c407bc5eb0d5bd
         }
 
         stage('Check Running Container') {
@@ -103,8 +95,7 @@ pipeline {
                 script {
                     echo 'Deploying Docker container...'
                     sh """
-                    
-                    docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
             }
