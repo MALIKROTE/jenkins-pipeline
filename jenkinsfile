@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     // Unstash the version.txt file if it exists
-                    unstash name: 'version.txt', allowEmpty: true
+                    unstash name: 'version-file', allowEmpty: true
                     // If version.txt does not exist, create an initial version file
                     if (!fileExists(DOCKER_TAG_FILE)) {
                         writeFile file: DOCKER_TAG_FILE, text: '0.0.0.0.0.0'
@@ -35,7 +35,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build Docker Image') {
             steps {
                 script {
@@ -43,7 +42,6 @@ pipeline {
                 }
             }
         }
-
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
@@ -56,7 +54,6 @@ pipeline {
                 }
             }
         }
-
         stage('Deploy Docker Image') {
             steps {
                 script {
@@ -70,7 +67,6 @@ pipeline {
                 }
             }
         }
-
         stage('Check Running Container') {
             steps {
                 script {
@@ -84,6 +80,10 @@ pipeline {
     post {
         success {
             echo 'Docker image built and pushed successfully!'
+            script {
+                // Stash the updated version.txt file
+                stash includes: 'version.txt', name: 'version-file', allowEmpty: true
+            }
         }
         failure {
             echo 'Failed to build and push Docker image.'
