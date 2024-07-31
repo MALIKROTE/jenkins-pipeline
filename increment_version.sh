@@ -1,24 +1,16 @@
 #!/bin/bash
 
-# File where the current version is stored
 VERSION_FILE="version.txt"
+if [ ! -f "$VERSION_FILE" ]; then
+    echo "1.0.0.0.0.0" > "$VERSION_FILE"
+fi
 
-# Get the current version from the file
-current_version=$(cat $VERSION_FILE)
-echo "Current version: $current_version"
+CURRENT_VERSION=$(cat "$VERSION_FILE")
+IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
 
-# Split the version into major, minor, patch, pre, prod, test, dev
-IFS='.' read -r major minor patch pre prod test dev <<< "$current_version"
+# Increment the dev version
+VERSION_PARTS[5]=$((VERSION_PARTS[5] + 1))
 
-# Increment the version (example: increment dev)
-dev=$((dev + 1))
-
-# New version
-new_version="$major.$minor.$patch.$pre.$prod.$test.$dev"
-echo "New version: $new_version"
-
-# Update the version file with the new version
-echo $new_version > $VERSION_FILE
-
-# Print the new version for use in the pipeline
-echo $new_version
+NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}.${VERSION_PARTS[3]}.${VERSION_PARTS[4]}.${VERSION_PARTS[5]}"
+echo "$NEW_VERSION" > "$VERSION_FILE"
+echo "$NEW_VERSION"
