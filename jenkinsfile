@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'malikdrote/sample-html-image'
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
+        GIT_CREDENTIALS = 'github-pat'
     }
 
     stages {
@@ -26,13 +27,14 @@ pipeline {
          stage('Commit Version Update') {
             steps {
                 script {
-                    sh '''
-                        git config user.name "MALIKROTE"
-                        git config user.email "malikrote1@gmail.com"
-                        git add version.txt
-                        git commit -m "Update version to ${DOCKER_TAG}"
-                        git push origin main
-                    '''
+                     withCredentials([string(credentialsId: "${GIT_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
+                        sh '''
+                            git config user.name "MALIKROTE"
+                            git config user.email "malikrote1@gmail.com"
+                            git add version.txt
+                            git commit -m "Update version to ${DOCKER_TAG}"
+                            git push https://github.com/MALIKROTE/jenkins-pipeline.git main
+                        '''
                 }
             }
         }
