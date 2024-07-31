@@ -34,6 +34,62 @@ pipeline {
                 }
             }
         }
+        stage('Pull Docker Image') {
+            steps {
+                script {
+                    echo 'Pulling Docker image...'
+                    sh 'docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                    }
+                }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    echo 'Running Docker container...'
+                    sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                        }
+                    }
+        }
+
+        stage('Check Running Container') {
+            steps {
+                script {
+                    echo 'Listing running Docker containers...'
+                    sh 'docker ps -a'
+                }
+            }
+        }
+
+        stage('Stop Docker Container') {
+            steps {
+                script {
+                    echo 'Stopping Docker container...'
+                    sh 'docker stop my_container'
+                }
+            }
+        }
+
+        stage('Remove Docker Container') {
+            steps {
+                script {
+                    echo 'Removing Docker container...'
+                    sh 'docker rm my_container'
+                }
+            }
+        }
+
+        stage('Deploy Docker Image') {
+            steps {
+                script {
+                    echo 'Deploying Docker container...'
+                    sh """
+                    
+                    docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    """
+                }
+            }
+        }
     }
 
     post {
