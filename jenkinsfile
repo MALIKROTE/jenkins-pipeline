@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'malikdrote/sample-html-image'
-        VERSION_FILE = 'version.txt'
+        DOCKER_TAG = 'version.txt'
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
     }
 
@@ -13,7 +13,6 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
         }
-
         stage('Increment Version') {
             steps {
                 script {
@@ -38,21 +37,20 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIALS}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh """
-                            echo \$PASSWORD | docker login -u \$USERNAME --password-stdin
+                            echo $PASSWORD | docker login -u $USERNAME --password-stdin
                             docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                         """
                     }
                 }
             }
         }
-
         stage('Pull Docker Image') {
             steps {
                 script {
                     echo 'Pulling Docker image...'
                     sh 'docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                    }
                 }
-            }
         }
 
         stage('Run Docker Container') {
@@ -60,8 +58,8 @@ pipeline {
                 script {
                     echo 'Running Docker container...'
                     sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
-                }
-            }
+                        }
+                    }
         }
 
         stage('Check Running Container') {
@@ -96,9 +94,8 @@ pipeline {
                 script {
                     echo 'Deploying Docker container...'
                     sh """
-                        docker stop tour-container || true
-                        docker rm tour-container || true
-                        docker run -dp 127.0.0.1:8092:80 --name tour-container ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    
+                    docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
             }
@@ -111,10 +108,6 @@ pipeline {
         }
         failure {
             echo 'Failed to build and push Docker image.'
-        }
-        always {
-            echo 'Cleaning up...'
-            sh 'docker rm -f my_container || true'
         }
     }
 }

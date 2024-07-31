@@ -1,16 +1,19 @@
 #!/bin/bash
 
-VERSION_FILE="version.txt"
-if [ ! -f "$VERSION_FILE" ]; then
-    echo "1.0.0.0.0.0" > "$VERSION_FILE"
-fi
+# Extract the current version from a file or environment variable
+current_version=$(cat version.txt)
 
-CURRENT_VERSION=$(cat "$VERSION_FILE")
-IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+# Split the version into its components
+IFS='.' read -r part1 part2 part3 part4 part5 part6 <<< "$current_version"
 
-# Increment the dev version
-VERSION_PARTS[5]=$((VERSION_PARTS[5] + 1))
+# Increment the last part
+part6=$((part6 + 1))
 
-NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}.${VERSION_PARTS[3]}.${VERSION_PARTS[4]}.${VERSION_PARTS[5]}"
-echo "$NEW_VERSION" > "$VERSION_FILE"
-echo "$NEW_VERSION"
+# Create the new version
+new_version="$part1.$part2.$part3.$part4.$part5.$part6"
+
+# Save the new version to a file or environment variable
+echo "$new_version" > version.txt
+
+# Output the new version
+echo "$new_version"
