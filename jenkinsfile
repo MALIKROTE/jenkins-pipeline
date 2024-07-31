@@ -6,6 +6,7 @@ pipeline {
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
         VERSION_FILE = 'version.txt'
         GIT_CREDENTIALS_ID = 'github-token'
+        BRANCH_NAME = 'main' // Branch name
     }
 
     stages {
