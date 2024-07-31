@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'malikdrote/sample-html-image'
-        DOCKER_TAG_FILE = 'version.txt'
+        DOCKER_TAG = 'latest'
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
     }
 
@@ -13,28 +13,7 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
         }
-        stage('Retrieve Version File') {
-            steps {
-                script {
-                    // Unstash the version.txt file if it exists
-                    unstash name: 'version-file', allowEmpty: true
-                    // If version.txt does not exist, create an initial version file
-                    if (!fileExists(DOCKER_TAG_FILE)) {
-                        writeFile file: DOCKER_TAG_FILE, text: '0.0.0.0.0.0'
-                    }
-                }
-            }
-        }
-        stage('Increment Version') {
-            steps {
-                script {
-                    sh './increment_version.sh'
-                    // Read the new version from the file
-                    def newVersion = readFile(DOCKER_TAG_FILE).trim()
-                    env.DOCKER_TAG = newVersion
-                }
-            }
-        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -42,6 +21,7 @@ pipeline {
                 }
             }
         }
+
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
@@ -54,19 +34,24 @@ pipeline {
                 }
             }
         }
-        stage('Deploy Docker Image') {
+        stage('Pull Docker Image') {
             steps {
                 script {
-                    echo 'Deploying Docker container...'
-                    sh """
-                        docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        docker stop my_container || true
-                        docker rm my_container || true
-                        docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    """
+                    echo 'Pulling Docker image...'
+                    sh 'docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                    }
                 }
-            }
         }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    echo 'Running Docker container...'
+                    sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                        }
+                    }
+        }
+
         stage('Check Running Container') {
             steps {
                 script {
@@ -75,24 +60,44 @@ pipeline {
                 }
             }
         }
+
+        stage('Stop Docker Container') {
+            steps {
+                script {
+                    echo 'Stopping Docker container...'
+                    sh 'docker stop my_container'
+                }
+            }
+        }
+
+        stage('Remove Docker Container') {
+            steps {
+                script {
+                    echo 'Removing Docker container...'
+                    sh 'docker rm my_container'
+                }
+            }
+        }
+
+        stage('Deploy Docker Image') {
+            steps {
+                script {
+                    echo 'Deploying Docker container...'
+                    sh """
+                    
+                    docker run -dp 127.0.0.1:8092:80 --name my_container ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    """
+                }
+            }
+        }
     }
 
     post {
         success {
             echo 'Docker image built and pushed successfully!'
-            script {
-                // Stash the updated version.txt file
-                stash includes: 'version.txt', name: 'version-file', allowEmpty: true
-            }
         }
         failure {
             echo 'Failed to build and push Docker image.'
-            script {
-                sh """
-                    docker stop my_container || true
-                    docker rm my_container || true
-                """
-            }
         }
     }
 }
