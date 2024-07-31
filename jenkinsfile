@@ -87,15 +87,6 @@ pipeline {
                 }
         }
 
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    echo 'Running Docker container...'
-                    sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
-                        }
-                    }
-        }
-
         stage('Check Running Container') {
             steps {
                 script {
@@ -121,6 +112,14 @@ pipeline {
                     sh 'docker rm my_container'
                 }
             }
+        }
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    echo 'Running Docker container...'
+                    sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                        }
+                    }
         }
 
         stage('Deploy Docker Image') {
