@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'malikrote1@gmail.com/sample-html-image'
+        DOCKER_IMAGE = 'sample-html-image'
         DOCKER_TAG = 'latest'
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
     }
