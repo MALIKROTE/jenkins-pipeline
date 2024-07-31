@@ -28,7 +28,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIALS}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh """
                             echo $PASSWORD | docker login -u $USERNAME --password-stdin
-                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            docker push malikdrote/${DOCKER_IMAGE}:${DOCKER_TAG}
                         """
                     }
                 }
