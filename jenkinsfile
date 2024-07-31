@@ -13,6 +13,16 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
         }
+        stage('Increment Version') {
+            steps {
+                script {
+                    sh './increment_version.sh'
+                    // Read the new version from the file
+                    def newVersion = readFile(VERSION_FILE).trim()
+                    env.DOCKER_TAG = newVersion
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
