@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'malikdrote/sample-html-image'
-        DOCKER_TAG = 'version.txt'
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
     }
 
