@@ -17,8 +17,7 @@ pipeline {
             steps {
                 script {
                     sh './increment_version.sh'
-                    // Read the new version from the file
-                    def newVersion = readFile(VERSION_FILE).trim()
+                    def newVersion = readFile('version.txt').trim()
                     env.DOCKER_TAG = newVersion
                 }
             }
@@ -48,8 +47,12 @@ pipeline {
             steps {
                 script {
                     echo 'Pulling Docker image...'
+<<<<<<< HEAD
                     sh 'docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}'
                     }
+=======
+                    sh "docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}"
+>>>>>>> 050bf9e14be455d940f236d3e6c407bc5eb0d5bd
                 }
         }
 
@@ -57,9 +60,15 @@ pipeline {
             steps {
                 script {
                     echo 'Running Docker container...'
+<<<<<<< HEAD
                     sh 'docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
                         }
                     }
+=======
+                    sh "docker run --name my_container -d ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                }
+            }
+>>>>>>> 050bf9e14be455d940f236d3e6c407bc5eb0d5bd
         }
 
         stage('Check Running Container') {
