@@ -5,6 +5,8 @@ pipeline {
         DOCKER_IMAGE = 'malikdrote/sample-html-image'
         DOCKER_TAG = 'latest'
         REGISTRY_CREDENTIALS = 'docker-hub-credentials'
+        VERSION_FILE = 'version.txt'
+        GIT_CREDENTIALS_ID = 'github-token'
     }
 
     stages {
@@ -13,7 +15,48 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
         }
+        stage('Determine Version') {
+            steps {
+                script {
+                    // Create the version file if it doesn't exist
+                    if (!fileExists(env.VERSION_FILE)) {
+                    writeFile file: env.VERSION_FILE, text: '0.0.0.0.0.0'
+                    }
 
+                    // Read the current version
+                    def version = readFile(env.VERSION_FILE).trim()
+
+                    // Split the version and increment the last segment
+                    def versionParts = version.tokenize('.')
+                    versionParts[-1] = (versionParts[-1].toInteger() + 1).toString()
+
+                    // Join the parts to form the new version
+                    env.DOCKER_TAG = versionParts.join('.')
+
+                    // Save the new version to the file
+                    writeFile file: env.VERSION_FILE, text: env.DOCKER_TAG
+
+                    // Print the new version
+                    echo "New Docker image version: ${env.DOCKER_TAG}"
+                }
+            }
+        }
+        stage('Commit Version Update') {
+            steps {
+                script {
+                    // Commit the updated version.txt back to the repository
+                    withCredentials([usernamePassword(credentialsId: env.GIT_CREDENTIALS_ID, usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PASS')]) {
+                    sh """
+                    git config user.email "malikrote1@gmail.com"
+                    git config user.name "MALIKROTE"
+                    git add ${env.VERSION_FILE}
+                    git commit -m "Update Docker image version to ${env.DOCKER_TAG}"
+                    git push https://${GITHUB_USER}:${GITHUB_PASS}@github.com/siddhopant123/Tour-project.git HEAD:${env.BRANCH_NAME}
+                    """
+                    }
+                }  
+            }
+        }   
         stage('Build Docker Image') {
             steps {
                 script {
@@ -21,7 +64,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
