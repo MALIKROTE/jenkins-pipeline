@@ -13,6 +13,19 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/MALIKROTE/jenkins-pipeline.git', credentialsId: 'github-token'
             }
         }
+        stage('Retrieve Version File') {
+            steps {
+                script {
+                    // Retrieve the version.txt file from the previous build if it exists
+                    if (currentBuild.previousBuild?.artifactManager?.root?.list()?.find { it.name == 'version.txt' }) {
+                        copyArtifacts projectName: env.JOB_NAME, selector: lastSuccessful(), filter: 'version.txt'
+                    } else {
+                        // If no previous build exists, create an initial version file
+                        writeFile file: DOCKER_TAG_FILE, text: '0.0.0.0.0.0'
+                    }
+                }
+            }
+        }
         stage('Increment Version') {
             steps {
                 script {
